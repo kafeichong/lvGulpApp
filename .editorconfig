@@ -1,0 +1,23 @@
+# editorconfig.org  定义和维护一致的编码风格在不同的编辑器和IDE
+#  参考https://atom.io/packages/editorconfig
+#  http://editorconfig.org/
+#	0.root: 表明是最顶层的配置文件，发现设为true时，才会停止查找.editorconfig文件。
+#   1.indent_style: 设置缩进风格，tab或者空格。tab是hard tabs，space为soft tabs。
+#	2.indent_size: 缩进的宽度，即列数，整数。如果indent_style为tab，则此属性默认为tab_width。
+#	3.tab_width: 设置tab的列数。默认是indent_size。
+#	4.　end_of_line： 换行符，lf、cr和crlf
+#	5.charset： 编码，latin1、utf-8、utf-8-bom、utf-16be和utf-16le
+#	6.trim_trailing_whitespace： 设为true表示会除去换行行首的任意空白字符。
+#	7.insert_final_newline: 设为true表明使文件以一个空白行结尾
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.md]
+trim_trailing_whitespace = false

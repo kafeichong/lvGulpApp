@@ -1,0 +1,8 @@
+node_modules
+dist/
+gulp/
+.idea
+.tmp
+*.log
+app.yaml
+.DS_Store
