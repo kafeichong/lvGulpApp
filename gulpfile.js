@@ -3,6 +3,7 @@ var gulp = require('gulp');
 var gulpLoadPlugins = require('gulp-load-plugins');
 var pngquant = require('imagemin-pngquant');
 var del = require('del');
+var runSequence = require('run-sequence');
 
 var $ = gulpLoadPlugins();
 var reload = browserSync.reload;
@@ -24,6 +25,20 @@ var reload = browserSync.reload;
  　　* compact：简洁格式的css代码。
  　　* compressed：压缩后的css代码。
  */
+
+
+gulp.task('build', function () {
+    return gulp.src('./css/*.css')
+        .pipe(base64({
+            baseDir: 'public',
+            extensions: ['svg', 'png', /\.jpg#datauri$/i],
+            exclude: [/\.server\.(com|net)\/dynamic\//, '--live.jpg'],
+            maxImageSize: 8 * 1024, // bytes
+            debug: true
+        }))
+        .pipe(concat('main.css'))
+        .pipe(gulp.dest('./public/css'));
+});
 gulp.task('styles', function () {
     var AUTOPREFIXER_BROWSERS = ['ie >= 10',
         'ie_mob >= 10',
@@ -56,9 +71,18 @@ gulp.task('styles', function () {
                 outputStyle: 'nested'
             }
         ).on('error', $.sass.logError))
-        .pipe($.plumber.stop())
+        // .pipe($.plumber.stop())
         .pipe($.autoprefixer(AUTOPREFIXER_BROWSERS))
         .pipe(gulp.dest('.tmp/styles/'))
+        .pipe($.base64({
+            baseDir: 'src/images',
+            extensions: ['svg', 'png', /\.jpg#datauri$/i],
+            exclude: [/\.server\.(com|net)\/dynamic\//, '--live.jpg'],
+            maxImageSize: 20 * 1024, // bytes
+            debug: true
+        }))
+
+
         .pipe($.rename({suffix: '.min'}))
         .pipe($.if('*.css', $.cssnano()))
         .pipe($.size({title: "styles"}))
@@ -180,10 +204,10 @@ gulp.task('scripts', function () {
         .pipe(gulp.dest('dist/js'))
 
 })
-gulp.task('default', ['clean'], function (cb) {
+gulp.task('default',  function (cb) {
     runSequence(
         'styles',
-        ['lint', 'html', 'scripts', 'images', 'copy'],
+        ['lint', 'html', 'scripts', 'images','copy'],
         // 'generate-service-worker',
         cb
     )
@@ -193,8 +217,22 @@ gulp.task('serve', ['styles', 'scripts'], function () {
         notify: false,
         logPrefix: 'BROWER',
         scrollElementMapping: ['.page', '.curent'],
-        server: ['.tmp', 'src'],
+        server: ['src', '.tmp'],
         port: 3000
+    });
+    gulp.watch("src/styles/*.{scss,css}", ['styles', reload]);
+    gulp.watch(['src/js/**/*.js'], ['lint', 'scripts', reload]);
+    gulp.watch(['src/images/**/*'], reload);
+    gulp.watch("src/*.html").on('change', reload);
+
+})
+gulp.task('serve:dist', ['default'], function () {
+    browserSync({
+        notify: false,
+        logPrefix: 'BROWER',
+        scrollElementMapping: ['.page', '.curent'],
+        server: ['dist'],
+        port: 3001
     });
     gulp.watch("src/styles/*.{scss,css}", ['styles', reload]);
     gulp.watch(['src/js/**/*.js'], ['lint', 'scripts', reload]);
@@ -206,7 +244,18 @@ gulp.task('serve', ['styles', 'scripts'], function () {
 gulp.task('clean', function () {
     del(['.tmp', 'dist/*', '!dist/.git'], {dot: true});
 })
-
+// Copy all files at the root level (app)
+gulp.task('copy', function () {
+        gulp.src([
+            'src/*',
+            '!src/*.html',
+            'node_modules/apache-server-configs/dist/.htaccess'
+        ], {
+            dot: true
+        }).pipe(gulp.dest('dist'))
+            .pipe($.size({title: 'copy'}))
+    }
+);
 
 /*
  合并flash js
@@ -218,7 +267,6 @@ gulp.task('flashjs', function () {
         .pipe($.concat('mc.min.js'))
         .pipe($.size({title: 'flashjs'}))
 })
-
 
 
 gulp.task('flashimg', function () {

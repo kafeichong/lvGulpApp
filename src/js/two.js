@@ -7,5 +7,5 @@
 console.log('two page!!');
 var say = 'Hello!';
 var hi = 'Hi~~~world!!!!';
-var l = 'see you!' + say + hi+ '这里!';
+var l = 'see you!' + say + hi + '这里!';
 console.log(l);
