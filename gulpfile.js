@@ -4,11 +4,17 @@ var gulpLoadPlugins = require('gulp-load-plugins');
 var pngquant = require('imagemin-pngquant');
 var del = require('del');
 var runSequence = require('run-sequence');
-
+var pkg = require('./package.json');
 var $ = gulpLoadPlugins();
 var reload = browserSync.reload;
 
-
+var   banner = [
+    '/*!',
+    ' * lvGulpApp v<%= pkg.version %>',
+    ' * Author： <%= pkg.author %>.',
+    ' * Time： <%= new Date().getFullYear() %>/<%= new Date().getMonth() %>/<%= new Date().getDate() %>.',
+    ' */',
+    ''].join('\n');
 /*
  编译.scss文件,压缩css文件
  newer:只处理修改后的文件
@@ -27,18 +33,7 @@ var reload = browserSync.reload;
  */
 
 
-gulp.task('build', function () {
-    return gulp.src('./css/*.css')
-        .pipe(base64({
-            baseDir: 'public',
-            extensions: ['svg', 'png', /\.jpg#datauri$/i],
-            exclude: [/\.server\.(com|net)\/dynamic\//, '--live.jpg'],
-            maxImageSize: 8 * 1024, // bytes
-            debug: true
-        }))
-        .pipe(concat('main.css'))
-        .pipe(gulp.dest('./public/css'));
-});
+
 gulp.task('styles', function () {
     var AUTOPREFIXER_BROWSERS = ['ie >= 10',
         'ie_mob >= 10',
@@ -73,6 +68,7 @@ gulp.task('styles', function () {
         ).on('error', $.sass.logError))
         // .pipe($.plumber.stop())
         .pipe($.autoprefixer(AUTOPREFIXER_BROWSERS))
+        .pipe($.header(banner, { pkg : pkg } ))
         .pipe(gulp.dest('.tmp/styles/'))
         .pipe($.base64({
             baseDir: 'src/images',
@@ -172,6 +168,7 @@ gulp.task('appmainjs', function () {
         .pipe($.newer('.tmp/js'))
         .pipe($.sourcemaps.write())
         .pipe(gulp.dest('.tmp/js'))
+        .pipe($.header(banner, { pkg : pkg } ))
         .pipe($.concat('main.min.js'))
         .pipe($.uglify())
         .pipe(gulp.dest('js/'))
